@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+# This command really isn't necessary. The existing wp script could do this.
+# This command is merely a way to shorthand db commands
+docker compose run cli wp db cli "${@}"

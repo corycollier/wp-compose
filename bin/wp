@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+docker compose run -u 0 cli chown -R www-data:www-data /var/www/html/wp-content/
+docker compose run --user www-data cli wp "${@}"

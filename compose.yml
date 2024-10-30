@@ -1,0 +1,73 @@
+services:
+  # redis, for short term key/value storing
+  redis:
+    image: redis:7.4
+    networks:
+      - default
+
+  # The main database instance
+  db:
+    env_file: .env
+    image: mariadb:lts
+    volumes:
+      - database:/var/lib/mysql
+    configs:
+      - source: mariadb
+        target: /etc/mysql/mariadb.conf.d/99-wordpress.cnf
+    networks:
+      - default
+
+  # The cli instance, allows for cli commands
+  cli:
+    env_file: .env
+    image: wordpress:cli-2
+    volumes:
+      - wordpress:/var/www/html/
+    networks:
+      - default
+
+  # The Wordpress API
+  api:
+    env_file: .env
+    image: wordpress:6-fpm
+    depends_on:
+      - db
+    networks:
+      - public
+      - default
+    volumes:
+      - wordpress:/var/www/html/
+
+  # the front-end gateway
+  gateway:
+    image: nginx:stable-perl
+    depends_on:
+      - api
+    networks:
+      - public
+    expose:
+      - "${NGINX_EXPOSE_PORT}"
+    ports:
+      - "${NGINX_EXPOSE_PORT}:80"
+    volumes:
+      - wordpress:/var/www/html/
+    configs:
+      - source: gateway
+        target: /etc/nginx/conf.d/default.conf
+
+# define the volumes
+volumes:
+  database:
+  wordpress:
+
+# define the configs
+configs:
+  mariadb:
+    file: ./database.conf
+  gateway:
+    file: ./gateway.conf
+
+# network definitions
+networks:
+  default:
+  public:
